@@ -1,0 +1,49 @@
+# config.yaml
+# Configuration file for QEM Task Handler
+# Defines QEM host, replicate servers, task lists, threading and timeout settings,
+# email server config, and logging preferences.
+#
+# Author: Vinay Vitta | Qlik PS
+# Created: 2025-08-08
+
+
+qem_host:
+  hostname: "QMI-DI-b45b.qmicloud.com"
+  user: "qmi@QMICLOUD"
+  token: "cG!!FWW4l00586dP"
+
+replicate_servers:
+  - name: "test_replicate"
+    tasks:
+      - taskA
+      - taskB
+  - name: "replica2.example.com"
+    tasks:
+      - taskC
+      - taskD
+      - taskE
+
+settings:
+  mode: "selected"       # options: "all" or "selected"
+  threads: 5
+  stop_timeout: 5      # minutes - try to resume for x minutes and use resume_retry_interval for every re-try
+  stop_max_polling_retries : 5    # Counter for checking task status for total number of times
+  stop_check_interval: 20 # seconds
+  stop_max_api_retries: 3 # Number of times - re-try | Going to issue STOP
+  resume_timeout: 5     # minutes - try to resume for x minutes and use resume_retry_interval for every re-try
+  resume_max_api_retries: 3   # Number of times - re-try | Going to issue RESUME
+  resume_retry_interval: 30 # seconds
+  resume_max_polling_retries: 5 # Counter for checking task status for total number of times
+
+email:
+  server: "smtp.example.com"
+  port: 587
+  use_tls: true
+  from_address: "noreply@example.com"
+  to_addresses:
+    - "admin1@example.com"
+    - "admin2@example.com"
+
+logging:
+  log_mode: "DEBUG"          # options: DEBUG, INFO, WARNING, ERROR
+  log_path: 'C:\Users\VIT\PycharmProjects\qemTasksHandler\logs'
