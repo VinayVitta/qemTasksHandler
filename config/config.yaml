@@ -47,3 +47,6 @@ email:
 logging:
   log_mode: "DEBUG"          # options: DEBUG, INFO, WARNING, ERROR
   log_path: 'C:\Users\VIT\PycharmProjects\qemTasksHandler\logs'
+
+backup:
+  backup_path: 'C:\Users\VIT\PycharmProjects\qemTasksHandler\backups'
