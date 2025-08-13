@@ -11,7 +11,8 @@ from qemTasksHandler import configParser
 from qemTasksHandler.myLogger import get_logger
 from restAPI import getTaskDetails, login
 
-logger = get_logger()
+config = configParser.load_config()
+logger = get_logger(config)
 logger.info("Initiating QEM REST API calls...")
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed when verify=False in requests
@@ -43,7 +44,7 @@ def stop_task(qem_url, server, task, login_token):
     task_mem_usage = task_details["memory_mb"]
     if task_mem_usage == 0:
         logger.info(f"Task '{task}' is already stopped. No action needed.")
-        return "StopSuccess"
+        return "Already_in_STOPPED_State"
     else:
         logger.info(f"Task '{task}' is running (Memory usage: {task_mem_usage} MB). Proceeding to STOP.")
 
@@ -62,7 +63,7 @@ def stop_task(qem_url, server, task, login_token):
         max_stop_api_retries = 3
 
     timeout_seconds = timeout_minutes * 60
-    stop_task_url = f"{qem_url.rstrip('/')}/servers/{server}/tasks/{task}?action=stop"
+    stop_task_url = 'https://' + f"{qem_url.rstrip('/')}/attunityenterprisemanager/api/v1/servers/{server}/tasks/{task}?action=stop"
 
     elapsed_time = 0
     polling_retry_counter = 0
@@ -110,7 +111,7 @@ def stop_task(qem_url, server, task, login_token):
 if __name__ == "__main__":
     # Your code to execute when the script is run directly
     # For example:
-    qem_host = "https://qmi-di-b45b.qmicloud.com/attunityenterprisemanager/api/v1/"
+    qem_host = "qmi-di-b45b.qmicloud.com"
     replicate_server = "test_replicate"
     sample_task = "MySQL2Null"
     login_token = login.login_api(qem_host, "qmi@QMICLOUD", "cG!!FWW4l00586dP")

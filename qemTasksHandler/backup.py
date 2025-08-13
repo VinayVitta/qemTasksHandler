@@ -9,7 +9,8 @@ from qemTasksHandler import configParser
 from restAPI import getTaskList, login
 import csv
 
-logger = get_logger()
+config = configParser.load_config()
+logger = get_logger(config)
 logger.info("Initiating backup of task status...")
 
 
@@ -61,7 +62,7 @@ def write_task_list_to_csv(task_data, filename="task_list.csv"):
         writer.writeheader()
         writer.writerows(task_list)
 
-    logger.info("CSV file '%s' created successfully.", filename)
+    logger.info("Task status CSV backup file '%s' created successfully.", filename)
 
 
 if __name__ == "__main__":

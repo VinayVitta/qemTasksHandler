@@ -1,6 +1,7 @@
 # 🔹 YAML config parser/validator
 
 import os, yaml
+from qemTasksHandler.myLogger import get_logger
 
 
 def get_config_path(filename="config.yaml"):
@@ -27,18 +28,13 @@ def load_config(filename="config.yaml"):
     Loads and parses the YAML configuration file.
     Returns a dictionary or None on failure.
     """
-    try:
-        config_path = get_config_path(filename)
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(f"Config file not found: {config_path}")
+    config_path = get_config_path(filename)
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+    with open(config_path, 'r') as file:
+        return yaml.safe_load(file) or {}
 
-        with open(config_path, 'r') as file:
-            return yaml.safe_load(file) or {}
 
-    except yaml.YAMLError as ye:
-        print(f"YAML parsing error: {ye}")
-    except Exception as e:
-        print(f"Failed to load config: {e}")
-
-    return None
-
+config = load_config()
+logger = get_logger(config)
+logger.info("Initiating configParser...")

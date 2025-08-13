@@ -7,9 +7,11 @@ import base64
 import warnings
 import requests
 from qemTasksHandler.myLogger import get_logger
+from qemTasksHandler import  configParser
 
 
-logger = get_logger()
+config = configParser.load_config()
+logger = get_logger(config)
 logger.info("Initiating QEM REST API calls...")
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed when verify=False in requests
@@ -37,7 +39,7 @@ def login_api(url: str, username: str, credentials: str) -> str | None:
         "Content-Type": "application/json"
     }
 
-    login_url = url.rstrip('/') + '/login'  # Ensure no double slash
+    login_url = 'https://' + url.rstrip('/') + '/attunityenterprisemanager/api/v1/login'  # Ensure no double slash
 
     logger.info("Logging in to QEM server at %s with user %s", login_url, username)
     try:
@@ -60,7 +62,7 @@ def login_api(url: str, username: str, credentials: str) -> str | None:
 if __name__ == "__main__":
     # Your code to execute when the script is run directly
     # For example:
-    qem_host = "https://qmi-di-b45b.qmicloud.com/attunityenterprisemanager/api/v1/"
+    qem_host = "qmi-di-b45b.qmicloud.com"
     replicate_server = "test_replicate"
     sample_task = "MySQL2Null"
     login_token = login_api(qem_host, "qmi@QMICLOUD", "cG!!FWW4l00586dP")

@@ -7,7 +7,7 @@ import os
 import yaml
 import logging
 import datetime
-from qemTasksHandler import configParser
+# from qemTasksHandler import configParser
 
 
 def get_log_filename(config):
@@ -60,15 +60,21 @@ def setup_logging(logfile_path, log_mode):
 
 
 # Entry point to configure logger
-def get_logger():
-    config = configParser.load_config()
-    if not config:
-        raise RuntimeError("Logging config could not be loaded.")
+
+_logger_instance = None
+
+
+def get_logger(config):
+    global _logger_instance
+    if _logger_instance is not None:
+        return _logger_instance  # Already initialized
 
     logfile_path, log_mode = get_log_filename(config)
     logger = setup_logging(logfile_path, log_mode)
     logger.info("----------------------------------------------------------------")
     logger.info(f"Logging initialized with level: {log_mode} and logs path: {logfile_path}")
+
+    _logger_instance = logger
     return logger
 
 
