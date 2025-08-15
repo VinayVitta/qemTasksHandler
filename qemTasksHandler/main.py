@@ -24,6 +24,7 @@ def run_tasks(action, mode=None, file_path=None, override_server=None):
     # --- Load Config & Logger ---
     config = configParser.load_config()
     logger = get_logger(config)
+    logger.info("_________________________________________________________")
     logger.info("=== Starting QEM Task Handler ===")
     logger.info("Action: %s | Mode: %s", action, mode)
 
@@ -34,7 +35,7 @@ def run_tasks(action, mode=None, file_path=None, override_server=None):
     parallel_threads = config.get('parallel_threads', 5)
 
     # --- Validate Mode F requirements ---
-    yaml_selection_mode = config['settings'].get('mode', 'A').upper()
+    yaml_selection_mode = config['settings'].get('mode', 'S').upper()
     tasks_selection_mode = (mode or yaml_selection_mode).upper()
 
     if tasks_selection_mode == 'F':

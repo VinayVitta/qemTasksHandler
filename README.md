@@ -114,8 +114,11 @@ pip install requests PyYAML
 
 
 ````
-## Enhancements
+## Enhancements: Below are MUST - 1, 4
 
-1. Handle LogStream tasks first for RESUME and STOP at last - Not mandatory
+1. Handle LogStream tasks first for RESUME and STOP at last - Mandatory
 2. Email alert at last with attached status
-3. Delete old logs/backups if needed
+3. Delete old logs/backups if needed - optional
+4. Check for any FULL RELOADS before stopping - Any time if FULL LOAD is running - hold - Mandatory
+5. Final validation if all tasks are stopped/resumed. * very useful
+6. Do we need to check latency before STOPPING. - Discover team to confirm.

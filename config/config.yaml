@@ -16,8 +16,8 @@ replicate_servers:
   - name: "test_replicate"
     tasks:
       - MySQL2Null
-      - TK_SAP_S3_FO_MSTR_DAILY_01
-      - inyamlnoinreplicate
+      - MySQL2Null_1
+      - MySQL2Null_2
   - name: "replica2.example.com"
     tasks:
       - taskC
@@ -25,11 +25,11 @@ replicate_servers:
       - taskE
 
 settings:
-  mode: "A"       # options: 'A'/'S' - A is all tasks" | "S is selective" if you choose S you must provide task names
+  mode: "A"       # options: 'A'/'S' - A is all tasks" | "S is selective" if you choose S you must provide task names | F - file
   parallel_threads: 5
   stop_timeout: 5      # minutes - try to resume for x minutes and use resume_retry_interval for every re-try
   stop_max_polling_retries : 5    # Counter for checking task status for total number of times
-  stop_check_interval: 20 # seconds
+  stop_check_interval: 20 # seconds - this is the interval to check for each re-try
   stop_max_api_retries: 3 # Number of times - re-try | Going to issue STOP
   resume_timeout: 5     # minutes - try to resume for x minutes and use resume_retry_interval for every re-try
   resume_max_api_retries: 3   # Number of times - re-try | Going to issue RESUME

@@ -13,7 +13,7 @@ qem_psw         = config["qem_host"]["qem_psw"]
 
 parallel_threads = config.get("parallel_threads", 5)
 
-yaml_mode        = config["settings"]["mode"].upper()   # 'S' or 'A'
+yaml_mode        = config["settings"]["mode"].upper()   # 'S' or 'A' or 'F'
 cli_mode         = mode_arg_from_CLI_or_None
 tasks_mode       = (cli_mode or yaml_mode).upper()
 
