@@ -3,89 +3,90 @@
 ## Step-by-step Logic
 
 ```python
-# Step 1: Read configuration from YAML
-config = read_yaml("config.yaml")
+# Step 1: Load configuration from YAML
+config = load_config("config.yaml")
 
-# Step 2: Extract details from config
-qem_host        = config["qem_host"]
-login_user      = config["user"]
-login_token     = config["token"]   # or credentials
+# Step 2: Extract settings from config
+qem_hostname    = config["qem_host"]["qem_hostname"]
+qem_user        = config["qem_host"]["qem_user"]
+qem_psw         = config["qem_host"]["qem_psw"]
 
-task_mode       = config["mode"]      # "all" or "selected"
-task_list       = config["tasks"]     # List of task names if "selected"
+parallel_threads = config.get("parallel_threads", 5)
 
-# Resume/Stop config parameters
-resume_timeout          = config["resume_timeout"]
-resume_check_interval   = config["resume_retry_interval"]
-resume_polling_retries  = config["resume_max_polling_retries"]
-resume_api_retries      = config["resume_max_api_retries"]
+yaml_mode        = config["settings"]["mode"].upper()   # 'S' or 'A'
+cli_mode         = mode_arg_from_CLI_or_None
+tasks_mode       = (cli_mode or yaml_mode).upper()
 
-stop_timeout            = config["stop_timeout"]
-stop_check_interval     = config["stop_check_interval"]
-stop_polling_retries    = config["stop_max_polling_retries"]
-stop_api_retries        = config["stop_max_api_retries"]
+action           = config["settings"]["action"].lower() # 'resume' or 'stop'
 
-threads = config["threads"]
+# Optional advanced settings (timeouts, retries, intervals)
+resume_timeout          = config.get("resume_timeout", 0)
+resume_check_interval   = config.get("resume_retry_interval", 0)
+resume_polling_retries  = config.get("resume_max_polling_retries", 0)
+resume_api_retries      = config.get("resume_max_api_retries", 0)
 
-# Step 3: Authenticate to QEM
-session = login_to_qem(host=qem_host, user=login_user, token=login_token)
+stop_timeout            = config.get("stop_timeout", 0)
+stop_check_interval     = config.get("stop_check_interval", 0)
+stop_polling_retries    = config.get("stop_max_polling_retries", 0)
+stop_api_retries        = config.get("stop_max_api_retries", 0)
 
-if not session.is_valid():
-    print("Login failed")
+# Step 3: Authenticate to QEM API
+login_token = login_api(qem_hostname, qem_user, qem_psw)
+if not login_token:
+    log_error("Login failed")
     exit()
 
-# Step 4: Verify if host/server exists
-if not check_server_exists(session, qem_host):
-    print("Server not found")
-    exit()
+# Step 4: Prepare the list of QEM servers from config
+replicate_servers_list = get_replicate_servers(config)
 
-# Step 5: Get list of currently running tasks
-running_tasks = get_running_tasks(session)
+tasks_to_run = []
 
-# Step 6: Determine tasks to act on
-if task_mode == "all":
-    tasks_to_process = running_tasks
-else:
-    tasks_to_process = intersect(task_list, running_tasks)
+# Step 5: For each replicate server
+for server in replicate_servers_list:
+    server_name = server["name"]
 
-# Step 7: Save backup of running tasks to CSV
-write_to_csv("backup_tasks.csv", tasks_to_process)
+    # Step 5.1: Backup current task status
+    task_status_list = get_task_list(qem_hostname, server_name, login_token)
+    backup_filename = get_backup_filename(config)
+    write_task_list_to_csv(task_status_list, backup_filename)
 
-# Step 8: Stop tasks in parallel using thread pool
-stop_results = parallel_run(
-    function=stop_task,
-    args=tasks_to_process,
-    kwargs={
-        "qem_url": qem_host,
-        "login_token": login_token,
-        "check_interval": stop_check_interval,
-        "timeout_minutes": stop_timeout,
-        "max_polling_retries": stop_polling_retries,
-        "max_stop_api_retries": stop_api_retries
-    },
-    max_threads=threads
-)
+    # Step 5.2: Determine tasks to process
+    if tasks_mode == "S":
+        yaml_tasks = get_tasks_for_server(config, server_name)
+        api_task_list = get_task_list(qem_hostname, server_name, login_token)
+        matching_tasks = validate_tasks_yaml(api_task_list, yaml_tasks)
+        for t in matching_tasks:
+            tasks_to_run.append({"server_name": server_name, "task_name": t})
 
-# Step 9: Log and verify stopped tasks
-log_results("stop_log.csv", stop_results)
+    elif tasks_mode == "A":
+        api_task_list = get_task_list(qem_hostname, server_name, login_token)
+        if not api_task_list:
+            log_warning(f"No tasks for server {server_name}")
+            continue
 
-# Step 10: Resume tasks in parallel using same logic
-resume_results = parallel_run(
-    function=resume_task,
-    args=tasks_to_process,
-    kwargs={
-        "qem_url": qem_host,
-        "login_token": login_token,
-        "check_interval": resume_check_interval,
-        "timeout_minutes": resume_timeout,
-        "max_polling_retries": resume_polling_retries,
-        "max_resume_api_retries": resume_api_retries
-    },
-    max_threads=threads
-)
+        if action == "stop":
+            running_only = [
+                t["name"] for t in api_task_list["taskList"]
+                if t["state"].upper() == "RUNNING"
+            ]
+            for t in running_only:
+                tasks_to_run.append({"server_name": server_name, "task_name": t})
+        else:
+            for t in api_task_list["taskList"]:
+                tasks_to_run.append({"server_name": server_name, "task_name": t["name"]})
 
-# Step 11: Log resumed tasks
-log_results("resume_log.csv", resume_results)
+# Step 6: Process tasks in parallel threads
+def task_worker(task):
+    if action == "resume":
+        return resume_task(qem_hostname, task["server_name"], task["task_name"], login_token)
+    else:
+        return stop_task(qem_hostname, task["server_name"], task["task_name"], login_token)
 
-# Done
-print("Task stop/resume operations complete")
+results = run_in_thread_pool(task_worker, tasks_to_run, max_workers=parallel_threads)
+
+# Step 7: Save result CSV report
+save_qem_task_report(config["logging"]["result_path"], results, action)
+
+# Step 8: Log completion
+log_info("All tasks processed and report saved")
+

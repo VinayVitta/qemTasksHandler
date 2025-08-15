@@ -1,13 +1,13 @@
 # Title: Email
 # Author: Vinay Vitta | Qlik - QDI PS
 # Date: August 2025
+# Description: Email alerts
 
-# Description: Email aLerts
 # Example to send an email
 # Update with the right SMTP server and port numbers
-#   SMTP_SERVER = "mailhub.carcgl.com"
+#   SMTP_SERVER = "mailhub.draft.com"
 #   SMTP_PORT =  25
-#   SENDER_EMAIL = "noreply@dev-qem-script"
+#   SENDER_EMAIL = "noreply@taskHandlerScript"
 #   SENDER_PASSWORD = ""
 
 

@@ -14,12 +14,14 @@ from restAPI import login
 
 config = configParser.load_config()
 logger = get_logger(config)
-logger.info("Initiating QEM REST API calls...")
+
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed when verify=False in requests
 warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
+
 def get_task_details(qem_url, server, task, login_token):
+    logger.info("Initiating QEM REST API getTaskDetails...")
     logger.info("Getting task details/status for task %s on server %s ...", task, server)
     get_task_details_url = 'https://' + qem_url + "/attunityenterprisemanager/api/v1/" + "servers/" + server + "/tasks/" + task
     get_task_details_response = requests.get(url=get_task_details_url, headers={'EnterpriseManager.APISessionID': login_token}, verify=False)

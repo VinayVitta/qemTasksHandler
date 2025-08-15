@@ -1,4 +1,7 @@
-# 🔹 YAML config parser/validator
+# Title: Email
+# Author: Vinay Vitta | Qlik - QDI PS
+# Date: August 2025
+# Description: Read YAML config - parse
 
 import os, yaml
 from qemTasksHandler.myLogger import get_logger

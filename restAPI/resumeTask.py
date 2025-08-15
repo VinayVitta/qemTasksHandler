@@ -12,7 +12,7 @@ from restAPI import getTaskDetails, login
 
 config = configParser.load_config()
 logger = get_logger(config)
-logger.info("Initiating QEM REST API calls...")
+
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed when verify=False in requests
 warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -34,7 +34,7 @@ def resume_task(qem_url, server, task, login_token):
         str: "ResumeSuccess" if task is running or successfully resumed,
              None otherwise.
     """
-
+    logger.info("Initiating QEM REST API RESUME task...")
     logger.info(f"Checking task '{task}' status on server '{server}' before resume...")
 
     task_details = getTaskDetails.get_task_details(qem_url, server, task, login_token)

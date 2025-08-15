@@ -12,7 +12,7 @@ from qemTasksHandler import  configParser
 
 config = configParser.load_config()
 logger = get_logger(config)
-logger.info("Initiating QEM REST API calls...")
+
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed when verify=False in requests
 warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -32,6 +32,7 @@ def login_api(url: str, username: str, credentials: str) -> str | None:
     """
     Perform login to QEM REST API, return session ID if successful, else None.
     """
+    logger.info("Initiating QEM REST API login...")
     encoded_credentials = encode_credentials(username, credentials)
 
     headers = {

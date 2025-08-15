@@ -1,7 +1,15 @@
+
+# Title: Email
+# Author: Vinay Vitta | Qlik - QDI PS
+# Date: August 2025
+# Description: Dependency Checker
+
 """
 Dependency checker for QEM Task Handler project.
 
-Checks for presence of required external and local modules.
+Checks for:
+  - Required external Python packages (installable via pip)
+  - Required local modules in the project
 
 Usage:
     python check_dependencies.py
@@ -9,19 +17,33 @@ Usage:
 
 import sys
 
-# List external packages to check (those to install via pip)
+# External packages (install via pip)
 external_packages = [
-    "requests",
-    "yaml",  # PyYAML installs this module
+    "requests",     # HTTP requests
+    "yaml",         # From PyYAML package
+    "concurrent",   # ThreadPoolExecutor
+    "argparse",     # CLI parsing
+    "smtplib",      # For Emails
+    "email",        # For Emails
+    "logging",      # For logging
+    "csv",          # For CSV
+    "restAPI"       # Using REST API calls
 ]
 
-# List local modules to check (relative imports in your project)
-# local_modules = [
-#     "qemTasksHandler.myLogger",
-#     "qemTasksHandlerqem_task_handler",
-# ]
+# Local project modules (relative imports)
+local_modules = [
+    "qemTasksHandler.configParser",
+    "qemTasksHandler.utils",
+    "qemTasksHandler.backup",
+    "qemTasksHandler.myLogger",
+    "restAPI.login",
+    "restAPI.getTaskList",
+    "restAPI.resumeTask",
+    "restAPI.stopTask",
+]
 
 missing = []
+
 
 def check_import(module_name):
     try:
@@ -31,22 +53,24 @@ def check_import(module_name):
         print(f"✘ Module '{module_name}' is MISSING.")
         missing.append(module_name)
 
+
 def main():
     print("Checking external packages...")
     for pkg in external_packages:
         check_import(pkg)
 
-    # print("\nChecking local project modules...")
-    # for mod in local_modules:
-    #    check_import(mod)
+    print("\nChecking local project modules...")
+    for mod in local_modules:
+        check_import(mod)
 
     if missing:
-        print("\nSome modules are missing!")
-        print("Please install missing packages via pip, e.g.:")
+        print("\n❌ Some modules are missing!")
+        print("Install missing Python packages with:")
         print(f"  pip install {' '.join(missing)}")
         sys.exit(1)
     else:
-        print("\nAll dependencies are satisfied.")
+        print("\n✅ All dependencies are satisfied.")
+
 
 if __name__ == "__main__":
     main()

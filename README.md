@@ -2,68 +2,120 @@
 
 ## Overview
 
-QEM Task Handler is a Python-based automation tool that stops and resumes tasks on a QEM server using YAML-based configuration.
+QEM Task Handler is a Python automation tool to stop or resume tasks on QEM servers.  
+It uses YAML for configuration, supports selective or all-task modes, and can run tasks in parallel.
 
 ## Features
 
-- Reads task and system configuration from YAML
-- Authenticates to QEM server via token
-- Stops/resumes tasks based on selection
-- Parallel task execution with retries and timeouts
-- Backup task state to CSV
-- Logging and email notifications
+- Load configuration from YAML
+- QEM API login authentication
+- Backup task states to CSV before changes
+- Selective (`S`) or all (`A`) or (`F`) for passing file - task modes
+- Parallel execution with thread pooling
+- Detailed logging to file
+- Generates result CSV after execution
 
 ---
 
 ## Pseudocode (High-Level Logic)
 
-1. Load configuration from YAML  
-2. Authenticate with QEM  
-3. Check if the server exists  
-4. Get running tasks  
-5. Filter tasks based on mode (all/selected)  
-6. Backup running tasks to CSV  
-7. Stop tasks in parallel (with retry + timeout)  
-8. Resume tasks in parallel  
-9. Log all results  
+1. Load configuration from YAML and extract settings (host, credentials, mode, action, threads, etc.)  
+2. Override mode from CLI arguments if provided  
+3. Authenticate to QEM server (login API)  
+4. Retrieve list of replicate servers from config  
+5. For each server:  
+   a. Get current task list from QEM API  
+   b. Backup task list to CSV file  
+   c. If mode = `S` (selected):  
+      - Load task names from YAML for this server  
+      - Match against API task list  
+   d. If mode = `A` (all):  
+      - If action = `stop`, select only tasks in `RUNNING` state  
+        - If action = `resume`, select all tasks
+   e. If mode = `F` pass file path:  
+      - Works only if you pass the file and provide --server `replicate_server_name`
+      - If action = `stop`, throws an error 
+      - If action = `resume`, select all running tasks from the file
+6. Aggregate all tasks to be processed  
+7. Process tasks in parallel threads:  
+   - If action = `resume`, call resume API for each task  
+   - If action = `stop`, call stop API for each task  
+8. Save results to a CSV report in the configured output path  
+9. Log completion and summary of operations  
+
 
 _For detailed pseudocode, refer to `docs/flow_pseudocode.md`._
 
 ---
 
+## Usage
+```bash
+python run.py --action resume --mode S
+
+# Resume tasks from a file containing task info
+python run.py --action resume --mode F --file ./my_tasks.csv
+
+# Parameters
+--action: resume or stop
+
+--mode: S (selected tasks from YAML) or A (all tasks)
+# File content must be like backup/below CSV format
+name,state,stop_reason,message,assigned_tags
+Task1,ERROR,FATAL_ERROR,The task stopped abnormally,[]
+Task2,STOPPED,NORMAL,,[]
+MyTask3,RUNNING,,,
+
+````
 ## Project Structure
 ````
 qem-task-handler/
-├── qem_task_handler/
-│ ├── init.py
-│ ├── main.py # 🔹 Main flow orchestrator
-│ ├── config.py # 🔹 YAML config parser/validator
-│ ├── api_client.py # 🔹 All QEM API calls (login, stop, resume, etc.)
-│ ├── task_manager.py # 🔹 Logic: prepare, select, stop/resume tasks
-│ ├── thread_pool.py # 🔹 Threading and retry handling
-│ ├── logger.py # 🔹 Logging setup
-│ ├── notifier.py # 🔹 Email notifications
-│ ├── backup.py # 🔹 Save running task state to CSV
-│ └── utils.py # 🔹 Generic helpers
-│
+├── qemTasksHandler/
+│   ├── main.py
+│   ├── configParser.py
+│   ├── utils.py
+│   ├── backup.py
+│   ├── myLogger.py
+│   └── ...
+├── restAPI/
+│   ├── login.py
+│   ├── getTaskList.py
+│   ├── resumeTask.py
+│   ├── stopTask.py
+│   └── ...
 ├── config/
-│ └── config.yaml
-│
-├── logs/
-│ └── qem_task_handler.log
-│
-├── backups/
-│ └── tasks_backup.csv
-│
-├── tests/
-│ ├── init.py
-│ └── test_task_manager.py
-│
-├── docs/
-│ └── flow_pseudocode.md
-│
-├── run.py # 🔹 Entry point (calls main.py)
+│   └── config.yaml
+├── run.py
+├── check_dependencies.py
 ├── requirements.txt
-├── README.md
-└── .gitignore
+└── README.md
 ````
+## Prerequisite Modules
+
+Before running the QEM Task Handler, ensure the following Python modules are installed:
+
+**External packages (install via `pip`):**
+- `requests` – HTTP requests for QEM API communication  
+- `PyYAML` (provides the `yaml` module) – YAML configuration parsing  
+
+**Standard library modules (included with Python, no install needed):**
+- `concurrent` – ThreadPoolExecutor for parallel execution  
+- `argparse` – Command-line argument parsing  
+- `smtplib` – Email sending support  
+- `email` – Email message formatting and headers  
+- `logging` – Application logging  
+- `csv` – CSV file read/write support  
+
+**Local project modules:**
+- `restAPI` – Internal module containing QEM API functions
+
+To install required external packages:
+```bash
+pip install requests PyYAML
+
+
+````
+## Enhancements
+
+1. Handle LogStream tasks first for RESUME and STOP at last - Not mandatory
+2. Email alert at last with attached status
+3. Delete old logs/backups if needed

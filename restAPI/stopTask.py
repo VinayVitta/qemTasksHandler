@@ -13,7 +13,7 @@ from restAPI import getTaskDetails, login
 
 config = configParser.load_config()
 logger = get_logger(config)
-logger.info("Initiating QEM REST API calls...")
+
 
 # Suppress only the single InsecureRequestWarning from urllib3 needed when verify=False in requests
 warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -34,6 +34,7 @@ def stop_task(qem_url, server, task, login_token):
     Returns:
         str: "StopSuccess" if stopped successfully, None otherwise.
     """
+    logger.info("Initiating QEM REST API STOP task...")
     logger.info(f"Checking status of task '{task}' on server '{server}' before initiating STOP")
 
     task_details = getTaskDetails.get_task_details(qem_url, server, task, login_token)

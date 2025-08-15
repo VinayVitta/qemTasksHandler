@@ -13,7 +13,7 @@ from restAPI import login
 # Load config and initialize logger
 config = configParser.load_config()
 logger = get_logger(config)
-logger.info("Initiating QEM REST API calls...")
+
 
 # Suppress only InsecureRequestWarning when verify=False
 warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -24,6 +24,7 @@ def get_task_list(qem_url, server, login_token):
     Fetches the list of tasks for a given QEM server.
     Returns a dictionary if successful, None otherwise.
     """
+    logger.info("Initiating QEM REST API getTaskList...")
     try:
         logger.info("Getting task list with status for server '%s' ...", server)
         get_task_list_url = f"https://{qem_url}/attunityenterprisemanager/api/v1/servers/{server}/tasks/"
