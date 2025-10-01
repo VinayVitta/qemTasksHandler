@@ -45,3 +45,5 @@ if __name__ == "__main__":
         print("Successfully Login")
         get_task_details = get_task_details(qem_host, replicate_server, sample_task, login_token)
         print(get_task_details)
+        active_full_load = get_task_details["full_load_completed"]
+        print(active_full_load)

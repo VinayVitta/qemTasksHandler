@@ -8,7 +8,7 @@ import csv
 import concurrent.futures
 from qemTasksHandler import configParser, utils, backup
 from qemTasksHandler.myLogger import get_logger
-from restAPI import login, getTaskList, resumeTask, stopTask
+from restAPI import login, getTaskList, resumeTask, stopTask, getTaskDetails
 
 
 def run_tasks(action, mode=None, file_path=None, override_server=None):
@@ -121,6 +121,29 @@ def run_tasks(action, mode=None, file_path=None, override_server=None):
                 sys.exit(1)
 
     logger.info("Total tasks queued for %s: %d", action, len(tasks_to_run))
+
+    # --- Pre-check: Stop if any task is still in full load (full_load_completed=False) ---
+    logger.info("Performing full load completion check...")
+    for task in tasks_to_run:
+        server = task['server_name']
+        task_name = task['task_name']
+        try:
+            details = getTaskDetails.get_task_details(qem_hostname, server, task_name, login_token)
+            full_load_completed = details.get("full_load_completed", None)
+
+            if not full_load_completed:  # False = active full load
+                logger.error(
+                    "Task '%s' on server '%s' is still in active full load (full_load_completed=False). Aborting script.",
+                    task_name, server
+                )
+                sys.exit(1)
+
+        except Exception as e:
+            logger.exception(
+                "Error retrieving details for task '%s' on server '%s': %s",
+                task_name, server, e
+            )
+            sys.exit(1)
 
     # --- Task Execution ---
     logger.info("[4/5] Executing tasks in parallel (max threads: %d)", parallel_threads)

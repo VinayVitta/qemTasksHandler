@@ -6,6 +6,7 @@
 from qemTasksHandler.myLogger import get_logger
 import datetime, os, yaml, csv
 from qemTasksHandler import configParser
+from restAPI import getTaskDetails
 
 config = configParser.load_config()
 logger = get_logger(config)
@@ -131,3 +132,5 @@ def save_qem_task_report(output_dir, data, action):
             writer.writerows(data)
 
     return filepath
+
+
