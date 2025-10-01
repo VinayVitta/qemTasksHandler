@@ -38,6 +38,7 @@ It uses YAML for configuration, supports selective or all-task modes, and can ru
       - If action = `resume`, select all running tasks from the file
 6. Aggregate all tasks to be processed  
 7. Process tasks in parallel threads:  
+   - If any FULL LOAD in progress - exit script
    - If action = `resume`, call resume API for each task  
    - If action = `stop`, call stop API for each task  
 8. Save results to a CSV report in the configured output path  
@@ -114,11 +115,11 @@ pip install requests PyYAML
 
 
 ````
-## Enhancements: Below are MUST - 1, 4
+## Enhancements: 
 
-1. Handle LogStream tasks first for RESUME and STOP at last - Mandatory
+1. Handle LogStream tasks first for RESUME and STOP at last - Discover team to confirm.
 2. Email alert at last with attached status
 3. Delete old logs/backups if needed - optional
-4. Check for any FULL RELOADS before stopping - Any time if FULL LOAD is running - hold - Mandatory
+4. Check for any FULL RELOADS before stopping- Done
 5. Final validation if all tasks are stopped/resumed. * very useful
 6. Do we need to check latency before STOPPING. - Discover team to confirm.
